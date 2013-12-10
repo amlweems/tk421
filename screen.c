@@ -18,7 +18,7 @@ uint16_t make_vga_entry(char c, uint8_t color)
 
 void putcharat(char c, uint8_t x, uint8_t y)
 {
-    const uint8_t index = y * COLUMNS + x;
+    const uint16_t index = y * COLUMNS + x;
     terminal_buffer[index] = make_vga_entry(c, terminal_color);
 }
 
@@ -26,8 +26,8 @@ void putchar(char c)
 {
     switch(c) {
     case 8:   // backspace
-        if (terminal_row != 0) {
-            terminal_row--;
+        if (terminal_column != 0) {
+            terminal_column--;
         }
         break;
     case 9:   // horiz tab
@@ -104,7 +104,6 @@ size_t printf(char* fmt, ...)
     va_end(args);
     return len;
 }
-
 
 void terminal_clear(void)
 {
