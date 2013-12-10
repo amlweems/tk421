@@ -34,6 +34,9 @@ void putchar(char c)
         }
         break;
     case 10:  // newline
+        while (terminal_column < COLUMNS) {
+            putcharat(0x20, terminal_column++, terminal_row);
+        }
         terminal_column = 0;
         if (++terminal_row == LINES) {
             terminal_row = 0;
