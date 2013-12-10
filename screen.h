@@ -31,4 +31,5 @@ uint16_t make_vga_entry(char c, uint8_t color);
 void putcharat(char c, uint8_t x, uint8_t y);
 void putchar(char c);
 size_t printf(char* fmt, ...);
+void terminal_clear(void);
 void terminal_init(void);

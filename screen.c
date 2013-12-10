@@ -105,10 +105,20 @@ size_t printf(char* fmt, ...)
     return len;
 }
 
+
+void terminal_clear(void)
+{
+    uint16_t c = make_vga_entry(' ', terminal_color);
+    for (size_t k = 0; k < COLUMNS*LINES; k++) {
+        terminal_buffer[k] = c;
+    }
+}
+
 void terminal_init(void)
 {
     terminal_row = 0;
     terminal_column = 0;
     terminal_color = make_vga_color(COLOR_WHITE, COLOR_BLACK);
     terminal_buffer = (uint16_t*) 0xB8000;
+    terminal_clear();
 }
