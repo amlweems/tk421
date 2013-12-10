@@ -1,10 +1,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define COLUMNS 80
+#define LINES 24
+
 size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
+char scrollback_buffer[LINES][COLUMNS];
 
 enum vga_color
 {

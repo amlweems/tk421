@@ -1,9 +1,6 @@
 #include <stdarg.h>
 #include "screen.h"
 
-const size_t COLUMNS = 80;
-const size_t LINES  = 24;
-
 uint8_t make_vga_color(enum vga_color fg_color, enum vga_color bg_color)
 {
     return fg_color | bg_color << 4;
@@ -16,9 +13,29 @@ uint16_t make_vga_entry(char c, uint8_t color)
     return c16 | (color16 << 8);
 }
 
+void scroll(uint8_t n) {
+    uint16_t index;
+    for (uint8_t y = 0; y < LINES-n; y++) {
+        for (uint8_t x = 0; x < COLUMNS; x++) {
+            char c = scrollback_buffer[y+n][x];
+            index = y * COLUMNS + x;
+            scrollback_buffer[y][x] = c;
+            terminal_buffer[index] = make_vga_entry(c, terminal_color);
+        }
+    }
+    for (uint8_t y = LINES-n; y < LINES; y++) {
+        for (uint8_t x = 0; x < COLUMNS; x++) {
+            index = y * COLUMNS + x;
+            scrollback_buffer[y][x] = 0x20;
+            terminal_buffer[index] = make_vga_entry(0x20, terminal_color);
+        }
+    }
+}
+
 void putcharat(char c, uint8_t x, uint8_t y)
 {
     const uint16_t index = y * COLUMNS + x;
+    scrollback_buffer[y][x] = c;
     terminal_buffer[index] = make_vga_entry(c, terminal_color);
 }
 
@@ -47,7 +64,8 @@ void putchar(char c)
         if (++terminal_column == COLUMNS) {
             terminal_column = 0;
             if (++terminal_row == LINES) {
-                terminal_row = 0;
+                terminal_row--;
+                scroll(1);
             }
         }
     }
@@ -107,7 +125,7 @@ size_t printf(char* fmt, ...)
 
 void terminal_clear(void)
 {
-    uint16_t c = make_vga_entry(' ', terminal_color);
+    uint16_t c = make_vga_entry(0x20, terminal_color);
     for (size_t k = 0; k < COLUMNS*LINES; k++) {
         terminal_buffer[k] = c;
     }
