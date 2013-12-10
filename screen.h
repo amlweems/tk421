@@ -8,7 +8,6 @@ size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
-char scrollback_buffer[LINES][COLUMNS];
 
 enum vga_color
 {
@@ -35,5 +34,6 @@ uint16_t make_vga_entry(char c, uint8_t color);
 void putcharat(char c, uint8_t x, uint8_t y);
 void putchar(char c);
 size_t printf(char* fmt, ...);
+void terminal_scroll(void);
 void terminal_clear(void);
 void terminal_init(void);

@@ -13,29 +13,9 @@ uint16_t make_vga_entry(char c, uint8_t color)
     return c16 | (color16 << 8);
 }
 
-void scroll(uint8_t n) {
-    uint16_t index;
-    for (uint8_t y = 0; y < LINES-n; y++) {
-        for (uint8_t x = 0; x < COLUMNS; x++) {
-            char c = scrollback_buffer[y+n][x];
-            index = y * COLUMNS + x;
-            scrollback_buffer[y][x] = c;
-            terminal_buffer[index] = make_vga_entry(c, terminal_color);
-        }
-    }
-    for (uint8_t y = LINES-n; y < LINES; y++) {
-        for (uint8_t x = 0; x < COLUMNS; x++) {
-            index = y * COLUMNS + x;
-            scrollback_buffer[y][x] = 0x20;
-            terminal_buffer[index] = make_vga_entry(0x20, terminal_color);
-        }
-    }
-}
-
 void putcharat(char c, uint8_t x, uint8_t y)
 {
     const uint16_t index = y * COLUMNS + x;
-    scrollback_buffer[y][x] = c;
     terminal_buffer[index] = make_vga_entry(c, terminal_color);
 }
 
@@ -65,7 +45,7 @@ void putchar(char c)
             terminal_column = 0;
             if (++terminal_row == LINES) {
                 terminal_row--;
-                scroll(1);
+                terminal_scroll();
             }
         }
     }
@@ -121,6 +101,22 @@ size_t printf(char* fmt, ...)
     }
     va_end(args);
     return len;
+}
+
+void terminal_scroll(void)
+{
+    uint16_t index;
+    for (uint8_t y = 0; y < LINES-1; y++) {
+        for (uint8_t x = 0; x < COLUMNS; x++) {
+            index = y * COLUMNS + x;
+            terminal_buffer[index] = terminal_buffer[index+COLUMNS];
+        }
+    }
+    uint16_t blank = make_vga_entry(0x20, terminal_color);
+    for (uint8_t x = 0; x < COLUMNS; x++) {
+        index = (LINES - 1) * COLUMNS + x;
+        terminal_buffer[index] = blank;
+    }
 }
 
 void terminal_clear(void)
