@@ -78,13 +78,6 @@ void terminal_init(void) {
     terminal_buffer = (uint16_t*) 0xB8000;
 }
 
-void test_pixels(void) {
-    unsigned char *VGA = (unsigned char*)0xA0000000L;
-    for (uint8_t k = 0; k < 10; k++) {
-        VGA[k] = COLOR_MAGENTA;    
-    }
-}
-
 void kernel_main(void) {
     terminal_init();
     terminal_write("Hello world!\n");
