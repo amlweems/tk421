@@ -1,20 +1,25 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "screen.h"
+#include "keyboard.h"
+
+/* read input from I/O ports */
+unsigned char inportb(unsigned short _port)
+{
+    unsigned char rv;
+    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    return rv;
+}
+
+/* output to I/O ports */
+void outportb(unsigned short _port, unsigned char _data)
+{
+    __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+}
 
 void kernel_main(void) {
     terminal_init();
-    char c = 0x41;
-    
-    uint32_t x = 123456789;
-    
     while (1) {
-        for (uint8_t k = 0; k < 80; k++) {
-            if (k%2 == 0) putchar(0x20);
-            else putchar(c+(x%26));
-            x = 16807*x;
-        }
-        volatile uint32_t x = 1;
-        while (x < 4000000) { x++; }
-    }        
+        putchar(getc());
+    }
 }

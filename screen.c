@@ -22,9 +22,14 @@ void putcharat(char c, uint8_t x, uint8_t y)
 void putchar(char c)
 {
     switch(c) {
+    case 0:
+        break;
     case 8:   // backspace
         if (terminal_column != 0) {
-            terminal_column--;
+            putcharat(0x20, --terminal_column, terminal_row);
+        } else if (terminal_row != 0) {
+            terminal_column = COLUMNS - 1;
+            putcharat(0x20, terminal_column, --terminal_row);
         }
         break;
     case 9:   // horiz tab
