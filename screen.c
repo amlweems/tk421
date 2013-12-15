@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "screen.h"
+#include "motd.h"
 
 uint8_t make_vga_color(enum vga_color fg_color, enum vga_color bg_color)
 {
@@ -11,6 +12,12 @@ uint16_t make_vga_entry(char c, uint8_t color)
     uint16_t c16 = c;
     uint16_t color16 = color;
     return c16 | (color16 << 8);
+}
+
+char getcharat(uint8_t x, uint8_t y)
+{
+    const uint16_t index = y * COLUMNS + x;
+    return (char)terminal_buffer[index];
 }
 
 void putcharat(char c, uint8_t x, uint8_t y)
@@ -26,11 +33,23 @@ void putchar(char c)
         break;
     case 8:   // backspace
         if (terminal_column != 0) {
-            putcharat(0x20, --terminal_column, terminal_row);
+            terminal_column--;
         } else if (terminal_row != 0) {
             terminal_column = COLUMNS - 1;
-            putcharat(0x20, terminal_column, --terminal_row);
+            terminal_row--;
+            while (getcharat(terminal_column, terminal_row) == '\0') {
+                if (terminal_column == 0) {
+                    if (terminal_row > 0) {
+                        terminal_row--;
+                    } else {
+                        break;
+                    }
+                } else {
+                    terminal_column--;
+                }
+            }
         }
+        putcharat('\0', terminal_column, terminal_row);
         break;
     case 9:   // horiz tab
         terminal_row += 8;
@@ -40,11 +59,12 @@ void putchar(char c)
         break;
     case 10:  // newline
         while (terminal_column < COLUMNS) {
-            putcharat(0x20, terminal_column++, terminal_row);
+            putcharat('\0', terminal_column++, terminal_row);
         }
         terminal_column = 0;
         if (++terminal_row == LINES) {
-            terminal_row = 0;
+            terminal_row--;
+            terminal_scroll();
         }
         break;
     default:
@@ -120,7 +140,7 @@ void terminal_scroll(void)
             terminal_buffer[index] = terminal_buffer[index+COLUMNS];
         }
     }
-    uint16_t blank = make_vga_entry(0x20, terminal_color);
+    uint16_t blank = make_vga_entry('\0', terminal_color);
     for (uint8_t x = 0; x < COLUMNS; x++) {
         index = (LINES - 1) * COLUMNS + x;
         terminal_buffer[index] = blank;
@@ -129,7 +149,7 @@ void terminal_scroll(void)
 
 void terminal_clear(void)
 {
-    uint16_t c = make_vga_entry(0x20, terminal_color);
+    uint16_t c = make_vga_entry('\0', terminal_color);
     for (size_t k = 0; k < COLUMNS*LINES; k++) {
         terminal_buffer[k] = c;
     }

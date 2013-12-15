@@ -31,6 +31,7 @@ enum vga_color
 
 uint8_t make_vga_color(enum vga_color fg_color, enum vga_color bg_color);
 uint16_t make_vga_entry(char c, uint8_t color);
+char getcharat(uint8_t x, uint8_t y);
 void putcharat(char c, uint8_t x, uint8_t y);
 void putchar(char c);
 size_t printf(char* fmt, ...);
